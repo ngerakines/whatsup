@@ -60,9 +60,9 @@ settings = {
 
 application = tornado.web.Application([
     (r'/', MainHandler),
-    (r'/([a-z0-9]+)', MainHandler),
+    (r'/([a-z0-9\-]+)', MainHandler),
     (r'/index.txt', PlainTextHandler),
-    (r'/([a-z0-9]+)/index.txt', PlainTextHandler),
+    (r'/([a-z0-9\-]+)/index.txt', PlainTextHandler),
 ], **settings)
 
 if __name__ == '__main__':
