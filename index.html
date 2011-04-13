@@ -1,0 +1,46 @@
+<html>
+    <head>
+        <title>Realm Status</title>
+        <style>
+body {
+  text-align: center;
+  margin: 1em 0 0 0;
+  vertical-align: middle;
+  font-family: 'Lucida Console', 'Courier New';
+  font-size: 26pt;
+  font-style: normal;
+  text-shadow: none;
+  text-decoration: none;
+  text-transform: none;
+  letter-spacing: 0;
+  word-spacing: 0;
+  line-height: 1.2;
+}
+#content {
+  width: 760px;
+  text-align: left;
+  margin: 1em auto;
+}
+.permalink {
+  font-size: 50%;
+  color: #ddd;
+}
+.permalink a {
+  text-decoration: none;
+  color: inherit;
+}
+.permalink a:hover {
+  text-decoration: underline;
+}
+        </style>
+    </head>
+    <body>
+        <div id="content">
+            <p>{{ message }}</p>
+            <p class="permalink">
+                [<a href="/{{ realm_slug }}">permalink</a>]
+            </p>
+        </div>
+    </body>
+<!-- Like what you see? http://github.com/ngerakines/whatsup -->
+</html>
