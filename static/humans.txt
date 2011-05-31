@@ -1,0 +1,11 @@
+/* TEAM */
+Developer: Nick Gerakines
+Site: http://socklabs.com/
+Twitter: @ngerakines
+Location: Irvine, CA
+
+/* SITE */
+Last update: 2011/05/31
+Standards: HTML5, CSS3
+Software: Vim, Git, Python
+

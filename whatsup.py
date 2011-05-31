@@ -16,19 +16,46 @@ import urllib2
 import simplejson
 import time
 
+from threading import Thread, Lock
+
 realms = {}
-last_check = time.time()
+myLock = Lock()
+
+def synchronized(lock):
+    """ WHEE! """
+    def wrap(f):
+    	def new_function(*args, **kw):
+    	    lock.acquire()
+    	    try:
+    	        return f(*args, **kw)
+    	    finally:
+                lock.release()
+    	return new_function
+    return wrap
+
+class MyThread(Thread):
+    def run(self):
+        self.populate_realms()
+        time.sleep(180)
+        self.run()
+
+    @synchronized(myLock)
+    def populate_realms(self):
+        data = simplejson.loads(self.get_json())
+        for realm in data['realms']:
+            realms[realm['slug']] = realm
+
+    def get_json(self):
+        url = 'http://us.battle.net/api/wow/realm/status'
+        return urllib2.urlopen(url).read()
+        
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self, realm_slug = None):
         now = time.time()
-        if now - last_check > 60 * 3:
-            populate_realms()
-        if not realm_slug:
-            realm_slug = random.choice(realms.keys())
-        elif realm_slug not in realms:
+        (realm_slug, realm) = select_realm(realm_slug)
+        if realm_slug == None:
             raise tornado.web.HTTPError(404)
-        realm = realms[realm_slug]
         status = "down"
         if realm['status'] == True:
             status = "up"
@@ -43,16 +70,15 @@ class PlainTextHandler(MainHandler):
         self.set_header('Content-Type', 'text/plain')
         self.write(message)
 
-def populate_realms():
-    global last_check
-    data = simplejson.loads(get_json())
-    for realm in data['realms']:
-        realms[realm['slug']] = realm
-    last_check = time.time()
 
-def get_json():
-    url = 'http://us.battle.net/api/wow/realm/status'
-    return urllib2.urlopen(url).read()
+@synchronized(myLock)
+def select_realm(realm_slug = None):
+    if not realm_slug:
+        realm_slug = random.choice(realms.keys())
+    elif realm_slug not in realms:
+        return (None, None)
+    return (realm_slug, realms[realm_slug])
+
 
 settings = {
     'static_path': os.path.join(os.path.dirname(__file__), 'static'),
@@ -70,7 +96,9 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         port = int(sys.argv[1])
 
-    populate_realms()
+    thread = MyThread()
+    thread.daemon = True
+    thread.start()
 
     http_server = tornado.httpserver.HTTPServer(application)
     http_server.listen(port)
