@@ -11,10 +11,10 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 
-import urllib2
-
-import simplejson
 import time
+
+import battlenet
+from battlenet import Realm
 
 from threading import Thread, Lock
 
@@ -41,14 +41,10 @@ class MyThread(Thread):
 
     @synchronized(myLock)
     def populate_realms(self):
-        data = simplejson.loads(self.get_json())
-        for realm in data['realms']:
-            realms[realm['slug']] = realm
-
-    def get_json(self):
-        url = 'http://us.battle.net/api/wow/realm/status'
-        return urllib2.urlopen(url).read()
-        
+        connection = battlenet.Connection()
+        realmsData = connection.get_all_realms(battlenet.UNITED_STATES)
+        for realm in realmsData:
+            realms[realm.slug] = realm
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self, realm_slug = None):
@@ -57,9 +53,9 @@ class MainHandler(tornado.web.RequestHandler):
         if realm_slug == None:
             raise tornado.web.HTTPError(404)
         status = "down"
-        if realm['status'] == True:
+        if realm.status == True:
             status = "up"
-        message = realm['name'] + " is " + status
+        message = realm.name + " is " + status
         self.output_message(message, realm_slug)
 
     def output_message(self, message, realm_slug):
